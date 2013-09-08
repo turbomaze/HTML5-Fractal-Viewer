@@ -14,10 +14,10 @@ var palette = [[255, 0, 0], [0, 255, 0], [0, 0, 255],
 var maxIterations = 100;
 
 var zoomSpeed = 1.1;
-var x_min = -3.555;
-var x_max = 3.555;
-var y_min = -2;
-var y_max = 2;
+var x_min = -2.5;
+var x_max = 1;
+var y_min = -1.25;
+var y_max = 1.25;
 var frameRate = 5;
 	
 /*************
@@ -166,9 +166,9 @@ function getColorFromCoordinate(x, y) {
 	//if the point isn't that easy, continue with the escape time algorithm//
 	var x_ = 0, y_ = 0;
 	var iteration = 0;
-	var xsq = x_*x_;
-	var ysq = y_*y_;
-	var val = xsq + ysq;
+	var xsq = 0;
+	var ysq = 0;
+	var val = 0;
 	
 	while (val <= 4 && iteration < maxIterations) {
 		var x_temp = (xsq - ysq) + x;
