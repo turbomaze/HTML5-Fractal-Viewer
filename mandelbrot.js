@@ -110,6 +110,10 @@ function updateCanvas() {
 	//drag the graph around//
 	if (movedAround) {
 		N_ORIGIN = N_ORIGIN.add(currMouseLocation.sub(mouseDownLoc));
+		x_min = (0-N_ORIGIN.x)*xScale;
+		x_max = (width-N_ORIGIN.x)*xScale;
+		y_min = (0-N_ORIGIN.y)*yScale;
+		y_max = (height-N_ORIGIN.y)*yScale;
 		mouseDownLoc = currMouseLocation;
 		movedAround = false;
 	}
@@ -133,7 +137,7 @@ function updateCanvas() {
 		mathematicalY += -yScale; //move down the y axis
 	}
 	ctx.putImageData(canvasImageDataObj, 0, 0); //all the colors have been computed, so draw 'em
-//console.log((currentTimeMillis() - startTime)+'ms'); //log how much time it took
+console.log((currentTimeMillis() - startTime)+'ms'); //log how much time it took
 
 	/////////////////
 	//call next one//
@@ -147,7 +151,19 @@ function updateCanvas() {
 
 function getColorFromCoordinate(x, y) {
 	var color = [0, 0, 0];
+	
+	///////////////////////////////////////////////////
+	//check if a point is in one of the main sections//
+	var xMinusQuarter = x - 0.25;
+	var xPlusOne = x + 1;
+	var coordinateYSq = y*y;
+	var q = xMinusQuarter*xMinusQuarter + coordinateYSq;
+	if (q*(q+xMinusQuarter) < 0.25*coordinateYSq || xPlusOne*xPlusOne + coordinateYSq < 0.0625) {
+		return color;
+	}
 
+	/////////////////////////////////////////////////////////////////////////
+	//if the point isn't that easy, continue with the escape time algorithm//
 	var x_ = 0, y_ = 0;
 	var iteration = 0;
 	var xsq = x_*x_;
