@@ -11,7 +11,7 @@
 var palette = [[255, 0, 0], [0, 255, 0], [0, 0, 255], 
 			   [255, 255, 0], [255, 0, 255], [0, 255, 255], 
 			   [255, 255, 255]]; //colors to use
-var maxIterations = 100;
+var maxIterations = 150;
 
 var zoomSpeed = 1.1;
 var x_min = -2.5;
@@ -168,16 +168,15 @@ function getColorFromCoordinate(x, y) {
 	var iteration = 0;
 	var xsq = 0;
 	var ysq = 0;
-	var val = 0;
 	
-	while (val <= 4 && iteration < maxIterations) {
-		var x_temp = (xsq - ysq) + x;
-		y_ = 2*x_*y_ + y;
-		x_ = x_temp;					
+	while (xsq + ysq <= 4 && iteration < maxIterations) {
+		y_ = x_*y_;
+		y_ += y_; //times 2
+		y_ += y;
+		x_ = (xsq - ysq) + x;					
 		
 		xsq = x_*x_;
 		ysq = y_*y_;
-		val = xsq + ysq;
 		iteration += 1;
 	}
 
