@@ -118,26 +118,10 @@ function updateCanvas() {
 		movedAround = false;
 	}
 
-	////////////////////////////////////////////////////////////
-	//go through each pixel and color it based on its location//
-	var currentIdx = 0; //current index in the pixel array (linear representation of 2d image)
-	var mathematicalY = canvasYToCartesian(0); //the mathematical y coordinate of the top left corner
-	for (var y = 0; y < height; y+=1) { //for every row
-		var mathematicalX = canvasXToCartesian(0); //each row starts at the beginning of the x axis
-		for (var x = 0; x < width; x+=1) { //for every pixel in the current row
-			var color = getColorFromCoordinate(mathematicalX, mathematicalY); //get its color
-			canvasPixelArray[0+currentIdx] = color[0]; //and color it in
-			canvasPixelArray[1+currentIdx] = color[1];
-			canvasPixelArray[2+currentIdx] = color[2];
-			canvasPixelArray[3+currentIdx] = 255; //full alpha
-			
-			currentIdx += 4; //you set 4 values in the array, so move over 4
-			mathematicalX += xScale; //move along the x axis
-		}
-		mathematicalY += -yScale; //move down the y axis
-	}
-	ctx.putImageData(canvasImageDataObj, 0, 0); //all the colors have been computed, so draw 'em
-console.log((currentTimeMillis() - startTime)+'ms'); //log how much time it took
+	////////////////////////////////////////////
+	//color the pixels with the mandelbrot set//
+	mandelbrot();
+	console.log((currentTimeMillis() - startTime)+'ms'); //log how much time it took
 
 	/////////////////
 	//call next one//
@@ -149,7 +133,47 @@ console.log((currentTimeMillis() - startTime)+'ms'); //log how much time it took
 	}
 }
 
-function getColorFromCoordinate(x, y) {
+function mandelbrot() {
+	var currentIdx = 0; //current index in the pixel array (linear representation of 2d image)
+	var mathematicalY = canvasYToCartesian(0); //the mathematical y coordinate of the top left corner
+	for (var y = 0; y < height; y+=1) { //for every row
+		var mathematicalX = canvasXToCartesian(0); //each row starts at the beginning of the x axis
+		for (var x = 0; x < width; x+=1) { //for every pixel in the current row
+			var color = getMandelbrotColorFromCoord(mathematicalX, mathematicalY); //get its color
+			canvasPixelArray[0+currentIdx] = color[0]; //and color it in
+			canvasPixelArray[1+currentIdx] = color[1];
+			canvasPixelArray[2+currentIdx] = color[2];
+			canvasPixelArray[3+currentIdx] = 255; //full alpha
+			
+			currentIdx += 4; //you set 4 values in the array, so move over 4
+			mathematicalX += xScale; //move along the x axis
+		}
+		mathematicalY += -yScale; //move down the y axis
+	}
+	ctx.putImageData(canvasImageDataObj, 0, 0); //all the colors have been computed, so draw 'em
+}
+
+function burningShip() {
+	var currentIdx = 0; //current index in the pixel array (linear representation of 2d image)
+	var mathematicalY = canvasYToCartesian(0); //the mathematical y coordinate of the top left corner
+	for (var y = 0; y < height; y+=1) { //for every row
+		var mathematicalX = canvasXToCartesian(0); //each row starts at the beginning of the x axis
+		for (var x = 0; x < width; x+=1) { //for every pixel in the current row
+			var color = getBurningShipColorFromCoord(mathematicalX, mathematicalY); //get its color
+			canvasPixelArray[0+currentIdx] = color[0]; //and color it in
+			canvasPixelArray[1+currentIdx] = color[1];
+			canvasPixelArray[2+currentIdx] = color[2];
+			canvasPixelArray[3+currentIdx] = 255; //full alpha
+			
+			currentIdx += 4; //you set 4 values in the array, so move over 4
+			mathematicalX += xScale; //move along the x axis
+		}
+		mathematicalY += -yScale; //move down the y axis
+	}
+	ctx.putImageData(canvasImageDataObj, 0, 0); //all the colors have been computed, so draw 'em
+}
+
+function getMandelbrotColorFromCoord(x, y) {
 	var color = [0, 0, 0];
 	
 	///////////////////////////////////////////////////
@@ -166,9 +190,8 @@ function getColorFromCoordinate(x, y) {
 	//if the point isn't that easy, continue with the escape time algorithm//
 	var x_ = 0, y_ = 0;
 	var iteration = 0;
-	var xsq = 0;
-	var ysq = 0;
-	
+	var xsq = 0, ysq = 0;
+
 	while (xsq + ysq <= 4 && iteration < maxIterations) {
 		y_ = x_*y_;
 		y_ += y_; //times 2
@@ -183,6 +206,34 @@ function getColorFromCoordinate(x, y) {
 	if (iteration != maxIterations) { //if it didn't survive all the iterations, it has a color
 		var color_id = Math.floor(palette.length * (iteration/maxIterations));
 		color = palette[color_id];
+	}
+	
+	return color;
+}
+
+function getBurningShipColorFromCoord(x, y) {
+	var color = [0, 0, 0];
+	
+	/////////////////////////////////////////////////////////////////////////
+	//if the point isn't that easy, continue with the escape time algorithm//
+	var x_ = 0, y_ = 0;
+	var iteration = 0;
+	var xsq = 0, ysq = 0;
+
+	while (xsq + ysq <= 4 && iteration < maxIterations) {
+		y_ = Math.abs(x_*y_);
+		y_ += y_; //times 2
+		y_ -= y;
+		x_ = (xsq - ysq) - x;					
+		
+		xsq = x_*x_;
+		ysq = y_*y_;
+		iteration += 1;
+	}
+
+	if (iteration != maxIterations) { //if it didn't survive all the iterations, it has a color
+		var gray = Math.floor(255 * (1 - (iteration/maxIterations)));
+		color[0] = color[1] = color[2] = gray;
 	}
 	
 	return color;
