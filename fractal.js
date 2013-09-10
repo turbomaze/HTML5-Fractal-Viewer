@@ -1,9 +1,10 @@
 /*****************\
-| Mandelbrot Set  |
-|     Viewer      |
+| Fractal Viewer  |
+|                 |
 | @author Anthony |
 | @version 0.1    |
 | @date 2013/9/7  |
+| @edit 2013/9/9  |
 \*****************/
 
 /**********
@@ -120,7 +121,7 @@ function updateCanvas() {
 
 	////////////////////////////////////////////
 	//color the pixels with the mandelbrot set//
-	mandelbrot();
+	mandelbrot(0, width, 0, height);
 	console.log((currentTimeMillis() - startTime)+'ms'); //log how much time it took
 
 	/////////////////
@@ -133,12 +134,12 @@ function updateCanvas() {
 	}
 }
 
-function mandelbrot() {
+function mandelbrot(xs, xe, ys, ye) { //recurses, needs the 
 	var currentIdx = 0; //current index in the pixel array (linear representation of 2d image)
-	var mathematicalY = canvasYToCartesian(0); //the mathematical y coordinate of the top left corner
-	for (var y = 0; y < height; y+=1) { //for every row
-		var mathematicalX = canvasXToCartesian(0); //each row starts at the beginning of the x axis
-		for (var x = 0; x < width; x+=1) { //for every pixel in the current row
+	var mathematicalY = canvasYToCartesian(ys); //the mathematical y coordinate of the top left corner
+	for (var y = ys; y < ye; y+=1) { //for every row
+		var mathematicalX = canvasXToCartesian(xs); //each row starts at the beginning of the x axis
+		for (var x = xs; x < xe; x+=1) { //for every pixel in the current row
 			var color = getMandelbrotColorFromCoord(mathematicalX, mathematicalY); //get its color
 			canvasPixelArray[0+currentIdx] = color[0]; //and color it in
 			canvasPixelArray[1+currentIdx] = color[1];
