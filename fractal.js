@@ -16,7 +16,7 @@ var fractalParameters = [
 						 ];
 var maxIterations = 250;
 var palette = [[2,7,49], [56,98,198], [110,117,135], [128,102,65], [174, 149, 109]]; //colors to use
-
+var colorMult = 2;
 var zoomSpeed = 1.4;
 var frameRate = 5;
 	
@@ -24,6 +24,7 @@ var frameRate = 5;
  * constants */
 var numIterInputSel = '#num-iter';
 var zoomInputSel = '#zoom';
+var colorMultInputSel = '#color-mult';
 
 var x_min, x_max, y_min, y_max;
 var N_ORIGIN; //canvas origin
@@ -93,6 +94,7 @@ function init() {
 	//inputs//
 	$(numIterInputSel).value = maxIterations;
 	$(zoomInputSel).value = zoomSpeed;
+	$(colorMultInputSel).value = colorMult;
 
 	//////////////////
 	//misc variables//
@@ -159,6 +161,12 @@ function reload(which, arg1) {
 		
 		case 2: //how much to zoom by each time
 		zoomSpeed = parseFloat($(zoomInputSel).value);
+		break;
+		
+		case 3: //how many times to repeat the color scheme
+		colorMult = parseFloat($(colorMultInputSel).value);
+		update = true;
+		updateCanvas();
 		break;
 		
 		default: break;
@@ -239,9 +247,10 @@ function getMandelbrotColorFromCoord(x, y) {
 
 	if (iteration != maxIterations) { //if it didn't survive all the iterations, it has a color
 		var mu = iteration - (Math.log(Math.log(val))); //fractional stopping iteration
-		mu = palette.length * (mu/maxIterations); //spread the colors out
-			if (mu > palette.length) mu = palette.length; //not too big
-			else if (mu < 0) mu = 0; //not too small
+			mu = palette.length * (mu/maxIterations); //spread the colors out
+				if (mu > palette.length) mu = palette.length; //not too big
+				else if (mu < 0) mu = 0; //not too small
+			mu *= colorMult; //allow the color scheme to repeat
 		var intPartMu = Math.floor(mu); //integer part of mu
 		var bucket = intPartMu%palette.length; //base the color on the integer part of mu
 		var nextBucket = (bucket+1)%palette.length; //the color right after that
