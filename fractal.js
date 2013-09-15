@@ -1,29 +1,35 @@
-/*****************\
-| Mandelbrot Set  |
-|     Viewer      |
-| @author Anthony |
-| @version 0.1    |
-| @date 2013/9/7  |
-\*****************/
+/******************\
+|  Fractal Viewer  |
+|                  |
+| @author Anthony  |
+| @version 0.1     |
+| @date 2013/09/07 |
+| @edit 2013/09/14 |
+\******************/
 
 /**********
  * config */
+var fractalId = 0;
+var fractalParameters = [
+						 [-2.5, 1, -1.25, 1.25], //mandelbrot set
+						 [-1.25, 2.25, -0.75, 1.75]  //burning ship
+						 ];
+var maxIterations = 150;
 var palette = [[255, 0, 0], [0, 255, 0], [0, 0, 255], 
 			   [255, 255, 0], [255, 0, 255], [0, 255, 255], 
 			   [255, 255, 255]]; //colors to use
-var maxIterations = 100;
 
-var zoomSpeed = 1.1;
-var x_min = -3.555;
-var x_max = 3.555;
-var y_min = -2;
-var y_max = 2;
+var zoomSpeed = 1.2;
 var frameRate = 5;
 	
 /*************
  * constants */
-var N_ORIGIN; //ca>N<vas origin
-var C_ORIGIN = new Vector2(0, 0); //>C<artesian origin
+var numIterInputSel = '#num-iter';
+var zoomInputSel = '#zoom';
+
+var x_min, x_max, y_min, y_max;
+var N_ORIGIN; //canvas origin
+var C_ORIGIN = new Vector2(0, 0); //cartesian origin
 var xScale; //initial units per pixel
 var yScale;
 var MS_PER_FRAME = 1000/frameRate;
@@ -84,6 +90,11 @@ function init() {
 	canvasImageDataObj = ctx.createImageData(width, height); //create an image data holder
 	canvasPixelArray = canvasImageDataObj.data; //enables you to set individual pixels
 	clearCanvas();
+	
+	//////////
+	//inputs//
+	$(numIterInputSel).value = maxIterations;
+	$(zoomInputSel).value = zoomSpeed;
 
 	//////////////////
 	//misc variables//
@@ -91,9 +102,7 @@ function init() {
 	
 	///////////////////
 	//graph variables//
-	N_ORIGIN = new Vector2((-x_min/(x_max - x_min))*width, (y_max/(y_max - y_min))*height);
-	xScale = (x_max - x_min)/width;
-	yScale = (y_max - y_min)/height;
+	loadFractalParameters(fractalId); //sets up all the fractal specific variables
 	
 	updateCanvas();
 }
@@ -110,18 +119,61 @@ function updateCanvas() {
 	//drag the graph around//
 	if (movedAround) {
 		N_ORIGIN = N_ORIGIN.add(currMouseLocation.sub(mouseDownLoc));
+		x_min = (0-N_ORIGIN.x)*xScale;
+		x_max = (width-N_ORIGIN.x)*xScale;
+		y_min = (0-N_ORIGIN.y)*yScale;
+		y_max = (height-N_ORIGIN.y)*yScale;
 		mouseDownLoc = currMouseLocation;
 		movedAround = false;
 	}
 
-	////////////////////////////////////////////////////////////
-	//go through each pixel and color it based on its location//
+	///////////////////////////////////////////////////////////
+	//decide which fractal to color the pixels with and do it//
+	switch (fractalId) {
+		case 0: //mandelbrot
+		mandelbrot(0, width, 0, height);
+		break;
+		
+		case 1: //burning ship
+		burningShip();
+		break;
+		
+		default: break;
+	}
+	
+	console.log((currentTimeMillis() - startTime)+'ms'); //log how much time it took
+}
+
+function reload(which, arg1) {
+	switch (which) {
+		case 0: //which fractal to draw
+		fractalId = arg1;
+		loadFractalParameters(fractalId);
+		update = true;
+		updateCanvas();
+		break;
+	
+		case 1: //maximum number of iterations to test
+		maxIterations = parseInt($(numIterInputSel).value);
+		update = true;
+		updateCanvas();
+		break;
+		
+		case 2: //how much to zoom by each time
+		zoomSpeed = parseFloat($(zoomInputSel).value);
+		break;
+		
+		default: break;
+	}
+}
+
+function mandelbrot(xs, xe, ys, ye) { //recurses, needs the 
 	var currentIdx = 0; //current index in the pixel array (linear representation of 2d image)
-	var mathematicalY = canvasYToCartesian(0); //the mathematical y coordinate of the top left corner
-	for (var y = 0; y < height; y+=1) { //for every row
-		var mathematicalX = canvasXToCartesian(0); //each row starts at the beginning of the x axis
-		for (var x = 0; x < width; x+=1) { //for every pixel in the current row
-			var color = getColorFromCoordinate(mathematicalX, mathematicalY); //get its color
+	var mathematicalY = canvasYToCartesian(ys); //the mathematical y coordinate of the top left corner
+	for (var y = ys; y < ye; y+=1) { //for every row
+		var mathematicalX = canvasXToCartesian(xs); //each row starts at the beginning of the x axis
+		for (var x = xs; x < xe; x+=1) { //for every pixel in the current row
+			var color = getMandelbrotColorFromCoord(mathematicalX, mathematicalY); //get its color
 			canvasPixelArray[0+currentIdx] = color[0]; //and color it in
 			canvasPixelArray[1+currentIdx] = color[1];
 			canvasPixelArray[2+currentIdx] = color[2];
@@ -133,35 +185,55 @@ function updateCanvas() {
 		mathematicalY += -yScale; //move down the y axis
 	}
 	ctx.putImageData(canvasImageDataObj, 0, 0); //all the colors have been computed, so draw 'em
-//console.log((currentTimeMillis() - startTime)+'ms'); //log how much time it took
-
-	/////////////////
-	//call next one//
-	var timeTaken = currentTimeMillis() - startTime;
-	if (timeTaken > MS_PER_FRAME) {
-		updateCanvas();
-	} else {
-		setTimeout(function(){updateCanvas();}, MS_PER_FRAME - timeTaken);
-	}
 }
 
-function getColorFromCoordinate(x, y) {
-	var color = [0, 0, 0];
+function burningShip() {
+	var currentIdx = 0; //current index in the pixel array (linear representation of 2d image)
+	var mathematicalY = canvasYToCartesian(0); //the mathematical y coordinate of the top left corner
+	for (var y = 0; y < height; y+=1) { //for every row
+		var mathematicalX = canvasXToCartesian(0); //each row starts at the beginning of the x axis
+		for (var x = 0; x < width; x+=1) { //for every pixel in the current row
+			var color = getBurningShipColorFromCoord(mathematicalX, mathematicalY); //get its color
+			canvasPixelArray[0+currentIdx] = color[0]; //and color it in
+			canvasPixelArray[1+currentIdx] = color[1];
+			canvasPixelArray[2+currentIdx] = color[2];
+			canvasPixelArray[3+currentIdx] = 255; //full alpha
+			
+			currentIdx += 4; //you set 4 values in the array, so move over 4
+			mathematicalX += xScale; //move along the x axis
+		}
+		mathematicalY += -yScale; //move down the y axis
+	}
+	ctx.putImageData(canvasImageDataObj, 0, 0); //all the colors have been computed, so draw 'em
+}
 
+function getMandelbrotColorFromCoord(x, y) {
+	var color = [0, 0, 0];
+	
+	///////////////////////////////////////////////////
+	//check if a point is in one of the main sections//
+	var xMinusQuarter = x - 0.25;
+	var xPlusOne = x + 1;
+	var coordinateYSq = y*y;
+	var q = xMinusQuarter*xMinusQuarter + coordinateYSq;
+	if (q*(q+xMinusQuarter) < 0.25*coordinateYSq || xPlusOne*xPlusOne + coordinateYSq < 0.0625) {
+		return color;
+	}
+
+	/////////////////////////////////////////////////////////////////////////
+	//if the point isn't that easy, continue with the escape time algorithm//
 	var x_ = 0, y_ = 0;
 	var iteration = 0;
-	var xsq = x_*x_;
-	var ysq = y_*y_;
-	var val = xsq + ysq;
-	
-	while (val <= 4 && iteration < maxIterations) {
-		var x_temp = (xsq - ysq) + x;
-		y_ = 2*x_*y_ + y;
-		x_ = x_temp;					
+	var xsq = 0, ysq = 0;
+
+	while (xsq + ysq <= 4 && iteration < maxIterations) {
+		y_ = x_*y_;
+		y_ += y_; //times 2
+		y_ += y;
+		x_ = (xsq - ysq) + x;					
 		
 		xsq = x_*x_;
 		ysq = y_*y_;
-		val = xsq + ysq;
 		iteration += 1;
 	}
 
@@ -171,6 +243,44 @@ function getColorFromCoordinate(x, y) {
 	}
 	
 	return color;
+}
+
+function getBurningShipColorFromCoord(x, y) {
+	var color = [0, 0, 0];
+	
+	/////////////////////////////////////////////////////////////////////////
+	//if the point isn't that easy, continue with the escape time algorithm//
+	var x_ = 0, y_ = 0;
+	var iteration = 0;
+	var xsq = 0, ysq = 0;
+
+	while (xsq + ysq <= 4 && iteration < maxIterations) {
+		y_ = Math.abs(x_*y_);
+		y_ += y_; //times 2
+		y_ -= y;
+		x_ = (xsq - ysq) - x;					
+		
+		xsq = x_*x_;
+		ysq = y_*y_;
+		iteration += 1;
+	}
+
+	if (iteration != maxIterations) { //if it didn't survive all the iterations, it has a color
+		var gray = Math.floor(255 * (1 - (iteration/maxIterations)));
+		color[0] = color[1] = color[2] = gray;
+	}
+	
+	return color;
+}
+
+function loadFractalParameters(fractal) {
+	x_min = fractalParameters[fractal][0];
+	x_max = fractalParameters[fractal][1];
+	y_min = fractalParameters[fractal][2];
+	y_max = fractalParameters[fractal][3];
+	N_ORIGIN = new Vector2((-x_min/(x_max - x_min))*width, (y_max/(y_max - y_min))*height);
+	xScale = (x_max - x_min)/width;
+	yScale = (y_max - y_min)/height;
 }
 
 /********************
