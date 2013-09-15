@@ -14,12 +14,10 @@ var fractalParameters = [
 						 [-2.5, 1, -1.25, 1.25], //mandelbrot set
 						 [-1.25, 2.25, -0.75, 1.75]  //burning ship
 						 ];
-var maxIterations = 150;
-var palette = [[255, 0, 0], [0, 255, 0], [0, 0, 255], 
-			   [255, 255, 0], [255, 0, 255], [0, 255, 255], 
-			   [255, 255, 255]]; //colors to use
+var maxIterations = 250;
+var palette = [[2,7,49], [56,98,198], [110,117,135], [128,102,65], [174, 149, 109]]; //colors to use
 
-var zoomSpeed = 1.2;
+var zoomSpeed = 1.4;
 var frameRate = 5;
 	
 /*************
@@ -225,8 +223,9 @@ function getMandelbrotColorFromCoord(x, y) {
 	var x_ = 0, y_ = 0;
 	var iteration = 0;
 	var xsq = 0, ysq = 0;
+	var val = 0;
 
-	while (xsq + ysq <= 4 && iteration < maxIterations) {
+	while (val <= 4 && iteration < maxIterations) {
 		y_ = x_*y_;
 		y_ += y_; //times 2
 		y_ += y;
@@ -234,12 +233,22 @@ function getMandelbrotColorFromCoord(x, y) {
 		
 		xsq = x_*x_;
 		ysq = y_*y_;
+		val = xsq + ysq;
 		iteration += 1;
 	}
 
 	if (iteration != maxIterations) { //if it didn't survive all the iterations, it has a color
-		var color_id = Math.floor(palette.length * (iteration/maxIterations));
-		color = palette[color_id];
+		var mu = iteration - (Math.log(Math.log(val))); //fractional stopping iteration
+		mu = palette.length * (mu/maxIterations); //spread the colors out
+			if (mu > palette.length) mu = palette.length; //not too big
+			else if (mu < 0) mu = 0; //not too small
+		var intPartMu = Math.floor(mu); //integer part of mu
+		var bucket = intPartMu%palette.length; //base the color on the integer part of mu
+		var nextBucket = (bucket+1)%palette.length; //the color right after that
+		var percentToNextBucket = mu - intPartMu; //the fractional part of mu
+
+		color = getGradient(palette[bucket], palette[nextBucket], 
+							1-percentToNextBucket); //invert it because small fractions means more of the first color
 	}
 	
 	return color;
@@ -301,6 +310,16 @@ function cartesianYToCanvas(y) { return N_ORIGIN.y+(y/-yScale); }
 function clearCanvas() {
 	ctx.fillStyle = '#FFFFFF';
 	ctx.fillRect(0, 0, width, height);
+}
+
+function getGradient(c1, c2, percent) { //returns an RBG color that's a percentage of the first mixed with the second
+	var ret = [0, 0, 0];
+	
+	ret[0] = Math.floor((percent * c1[0]) + ((1 - percent) * c2[0]))%255;
+	ret[1] = Math.floor((percent * c1[1]) + ((1 - percent) * c2[1]))%255;
+	ret[2] = Math.floor((percent * c1[2]) + ((1 - percent) * c2[2]))%255;
+	
+	return ret;		
 }
 
 function getRandCSSColor(low, high) { //returns random color in css rgb format, range is [low, high) for r, g, and b
