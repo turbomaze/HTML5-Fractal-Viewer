@@ -1,30 +1,35 @@
-/*****************\
-| Fractal Viewer  |
-|                 |
-| @author Anthony |
-| @version 0.1    |
-| @date 2013/9/7  |
-| @edit 2013/9/9  |
-\*****************/
+/******************\
+|  Fractal Viewer  |
+|                  |
+| @author Anthony  |
+| @version 0.1     |
+| @date 2013/9/7   |
+| @edit 2013/9/14  |
+\******************/
 
 /**********
  * config */
+var fractalId = 0;
+var fractalParameters = [
+						 [-2.5, 1, -1.25, 1.25], //mandelbrot set
+						 [-1.25, 2.25, -0.75, 1.75]  //burning ship
+						 ];
+var maxIterations = 150;
 var palette = [[255, 0, 0], [0, 255, 0], [0, 0, 255], 
 			   [255, 255, 0], [255, 0, 255], [0, 255, 255], 
 			   [255, 255, 255]]; //colors to use
-var maxIterations = 150;
 
-var zoomSpeed = 1.1;
-var x_min = -2.5;
-var x_max = 1;
-var y_min = -1.25;
-var y_max = 1.25;
+var zoomSpeed = 1.2;
 var frameRate = 5;
 	
 /*************
  * constants */
-var N_ORIGIN; //ca>N<vas origin
-var C_ORIGIN = new Vector2(0, 0); //>C<artesian origin
+var numIterInputSel = '#num-iter';
+var zoomInputSel = '#zoom';
+
+var x_min, x_max, y_min, y_max;
+var N_ORIGIN; //canvas origin
+var C_ORIGIN = new Vector2(0, 0); //cartesian origin
 var xScale; //initial units per pixel
 var yScale;
 var MS_PER_FRAME = 1000/frameRate;
@@ -85,6 +90,11 @@ function init() {
 	canvasImageDataObj = ctx.createImageData(width, height); //create an image data holder
 	canvasPixelArray = canvasImageDataObj.data; //enables you to set individual pixels
 	clearCanvas();
+	
+	//////////
+	//inputs//
+	$(numIterInputSel).value = maxIterations;
+	$(zoomInputSel).value = zoomSpeed;
 
 	//////////////////
 	//misc variables//
@@ -92,9 +102,7 @@ function init() {
 	
 	///////////////////
 	//graph variables//
-	N_ORIGIN = new Vector2((-x_min/(x_max - x_min))*width, (y_max/(y_max - y_min))*height);
-	xScale = (x_max - x_min)/width;
-	yScale = (y_max - y_min)/height;
+	loadFractalParameters(fractalId); //sets up all the fractal specific variables
 	
 	updateCanvas();
 }
@@ -119,18 +127,43 @@ function updateCanvas() {
 		movedAround = false;
 	}
 
-	////////////////////////////////////////////
-	//color the pixels with the mandelbrot set//
-	mandelbrot(0, width, 0, height);
+	///////////////////////////////////////////////////////////
+	//decide which fractal to color the pixels with and do it//
+	switch (fractalId) {
+		case 0: //mandelbrot
+		mandelbrot(0, width, 0, height);
+		break;
+		
+		case 1: //burning ship
+		burningShip();
+		break;
+		
+		default: break;
+	}
+	
 	console.log((currentTimeMillis() - startTime)+'ms'); //log how much time it took
+}
 
-	/////////////////
-	//call next one//
-	var timeTaken = currentTimeMillis() - startTime;
-	if (timeTaken > MS_PER_FRAME) {
+function reload(which, arg1) {
+	switch (which) {
+		case 0: //which fractal to draw
+		fractalId = arg1;
+		loadFractalParameters(fractalId);
+		update = true;
 		updateCanvas();
-	} else {
-		setTimeout(function(){updateCanvas();}, MS_PER_FRAME - timeTaken);
+		break;
+	
+		case 1: //maximum number of iterations to test
+		maxIterations = parseInt($(numIterInputSel).value);
+		update = true;
+		updateCanvas();
+		break;
+		
+		case 2: //how much to zoom by each time
+		zoomSpeed = parseFloat($(zoomInputSel).value);
+		break;
+		
+		default: break;
 	}
 }
 
@@ -238,6 +271,16 @@ function getBurningShipColorFromCoord(x, y) {
 	}
 	
 	return color;
+}
+
+function loadFractalParameters(fractal) {
+	x_min = fractalParameters[fractal][0];
+	x_max = fractalParameters[fractal][1];
+	y_min = fractalParameters[fractal][2];
+	y_max = fractalParameters[fractal][3];
+	N_ORIGIN = new Vector2((-x_min/(x_max - x_min))*width, (y_max/(y_max - y_min))*height);
+	xScale = (x_max - x_min)/width;
+	yScale = (y_max - y_min)/height;
 }
 
 /********************

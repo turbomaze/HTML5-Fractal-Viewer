@@ -9,16 +9,20 @@
 		<canvas id="canvas" width="700" height="500">HTML canvas not supported on this browser.</canvas>
 
 		<div>
-			Setting 1: 
-			<input type="text" id="" />
-			<input type="button" onclick="" value="Setting 1" />
+			<input type="button" onclick="reload(0, 0)" value="Mandelbrot Set" />
+			<input type="button" onclick="reload(0, 1)" value="Burning Ship" />
+			<br />
+		
+			Number of iterations: 
+			<input type="text" id="num-iter" />
+			<input type="button" onclick="reload(1)" value="Update" />
 			<br />
 			
-			Setting 2: 
-			<input type="text" id="" />
-			<input type="button" onclick="" value="Setting 2" />
+			Zoom multiplier: 
+			<input type="text" id="zoom" />
+			<input type="button" onclick="reload(2)" value="Update" />
 			<br />
-			
+
 			<input type="button" onclick="" value="Do something" />
 		</div>
 	</body>
