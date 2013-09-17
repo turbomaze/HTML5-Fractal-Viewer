@@ -12,9 +12,10 @@
 			<input type="button" onclick="reload(0, 0)" value="Mandelbrot Set" />
 			<input type="button" onclick="reload(0, 1)" value="Burning Ship" />
 			<br />
-		
-			Number of iterations: 
-			<input type="text" id="num-iter" />
+			
+			Window size:
+			<input type="text" id="canv-width" style="width: 70px" placeholder="width" />
+			<input type="text" id="canv-height" style="width: 70px" placeholder="height" />
 			<input type="button" onclick="reload(1)" value="Update" />
 			<br />
 			
@@ -22,10 +23,15 @@
 			<input type="text" id="zoom" />
 			<input type="button" onclick="reload(2)" value="Update" />
 			<br />
+		
+			Number of iterations: 
+			<input type="text" id="num-iter" />
+			<input type="button" onclick="reload(3)" value="Update" />
+			<br />
 			
 			Color multiplier: 
 			<input type="text" id="color-mult" />
-			<input type="button" onclick="reload(3)" value="Update" />
+			<input type="button" onclick="reload(4)" value="Update" />
 			<br />
 
 			<input type="button" onclick="" value="Do something" />

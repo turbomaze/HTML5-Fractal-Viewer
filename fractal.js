@@ -22,8 +22,10 @@ var frameRate = 5;
 	
 /*************
  * constants */
-var numIterInputSel = '#num-iter';
+var widthInputSel = '#canv-width';
+var heightInputSel = '#canv-height';
 var zoomInputSel = '#zoom';
+var numIterInputSel = '#num-iter';
 var colorMultInputSel = '#color-mult';
 
 var x_min, x_max, y_min, y_max;
@@ -80,6 +82,10 @@ function init() {
 			var postVectorFromMouseToOrigin = C_ORIGIN.sub(postMouseLocIn2Space);
 			var vectorMoveAmount = priorVectorFromMouseToOrigin.sub(postVectorFromMouseToOrigin).cDiv(new Vector2(-xScale, yScale));
 			N_ORIGIN = N_ORIGIN.sub(vectorMoveAmount);
+			x_min = (0-N_ORIGIN.x)*xScale;
+			x_max = (width-N_ORIGIN.x)*xScale;
+			y_min = (0-N_ORIGIN.y)*yScale;
+			y_max = (height-N_ORIGIN.y)*yScale;
 			update = true;
 			updateCanvas();
 		}, false);
@@ -92,8 +98,10 @@ function init() {
 	
 	//////////
 	//inputs//
-	$(numIterInputSel).value = maxIterations;
+	$(widthInputSel).value = width;
+	$(heightInputSel).value = height;
 	$(zoomInputSel).value = zoomSpeed;
+	$(numIterInputSel).value = maxIterations;
 	$(colorMultInputSel).value = colorMult;
 
 	//////////////////
@@ -152,18 +160,31 @@ function reload(which, arg1) {
 		update = true;
 		updateCanvas();
 		break;
+		
+		case 1: //canvas width and height
+		width = parseInt($(widthInputSel).value); //get width
+		height = parseInt($(heightInputSel).value); //get height
+		canvasImageDataObj = ctx.createImageData(width, height); //create a new image data holder
+		canvasPixelArray = canvasImageDataObj.data; //get the corresponding empty pixel array
+		canvas.width = width; //change the width
+		canvas.height = height; //and height of the canvas
+		N_ORIGIN = new Vector2((-x_min/(x_max - x_min))*width, (y_max/(y_max - y_min))*height); //recalculate the canvas's origin
+		xScale = (x_max - x_min)/width; //new x scale
+		yScale = (y_max - y_min)/height; //new y scale
+		update = true;
+		updateCanvas();
+		
+		case 2: //how much to zoom by each time
+		zoomSpeed = parseFloat($(zoomInputSel).value);
+		break;
 	
-		case 1: //maximum number of iterations to test
+		case 3: //maximum number of iterations to test
 		maxIterations = parseInt($(numIterInputSel).value);
 		update = true;
 		updateCanvas();
 		break;
 		
-		case 2: //how much to zoom by each time
-		zoomSpeed = parseFloat($(zoomInputSel).value);
-		break;
-		
-		case 3: //how many times to repeat the color scheme
+		case 4: //how many times to repeat the color scheme
 		colorMult = parseFloat($(colorMultInputSel).value);
 		update = true;
 		updateCanvas();
