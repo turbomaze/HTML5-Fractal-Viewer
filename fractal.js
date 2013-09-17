@@ -84,8 +84,8 @@ function init() {
 			N_ORIGIN = N_ORIGIN.sub(vectorMoveAmount);
 			x_min = (0-N_ORIGIN.x)*xScale;
 			x_max = (width-N_ORIGIN.x)*xScale;
-			y_min = (0-N_ORIGIN.y)*yScale;
-			y_max = (height-N_ORIGIN.y)*yScale;
+			y_min = (height-N_ORIGIN.y)*yScale;
+			y_max = (0-N_ORIGIN.y)*yScale;
 			update = true;
 			updateCanvas();
 		}, false);
@@ -129,8 +129,8 @@ function updateCanvas() {
 		N_ORIGIN = N_ORIGIN.add(currMouseLocation.sub(mouseDownLoc));
 		x_min = (0-N_ORIGIN.x)*xScale;
 		x_max = (width-N_ORIGIN.x)*xScale;
-		y_min = (0-N_ORIGIN.y)*yScale;
-		y_max = (height-N_ORIGIN.y)*yScale;
+		y_min = (height-N_ORIGIN.y)*yScale;
+		y_max = (0-N_ORIGIN.y)*yScale;
 		mouseDownLoc = currMouseLocation;
 		movedAround = false;
 	}
