@@ -17,7 +17,7 @@ var fractalParameters = [
 var maxIterations = 250;
 var palette = [[2,7,49], [56,98,198], [110,117,135], [128,102,65], [174, 149, 109]]; //colors to use
 var colorMult = 2;
-var zoomSpeed = 1.4;
+var zoomSpeed = 2.3;
 var frameRate = 5;
 	
 /*************
@@ -323,6 +323,13 @@ function loadFractalParameters(fractal) {
 
 /********************
  * helper functions */
+function promptSaveCanvas() {
+	var downloadUrl = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream');
+	if (downloadUrl.length < 1024*1024 || confirm('This is a relatively large image, so your browser may crash. Continue?')) {
+		window.location = downloadUrl;
+	}
+}
+ 
 function getSaveFileLink(linkText, fileContents) {
 	return '<a href="data:application/octet-stream;base64;charset=utf-8,' + window.btoa(fileContents) + '">' + 
 				linkText + 
