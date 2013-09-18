@@ -2,9 +2,9 @@
 |  Fractal Viewer  |
 |                  |
 | @author Anthony  |
-| @version 0.1     |
+| @version 0.2     |
 | @date 2013/09/07 |
-| @edit 2013/09/14 |
+| @edit 2013/09/18 |
 \******************/
 
 /**********
