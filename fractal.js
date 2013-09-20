@@ -13,6 +13,7 @@ var fractalId = 0;
 var fractalParameters = [
 						 [-2.5, 1, -1.25, 1.25], //mandelbrot set
 						 [-1.25, 2.25, -0.75, 1.75], //burning ship
+						 [-1.4, 1.4, -1, 1], //julia
 						 ];
 var maxIterations = 250;
 var palette = [[2,7,49], [56,98,198], [110,117,135], [128,102,65], [174, 149, 109]]; //colors to use
@@ -22,6 +23,8 @@ var frameRate = 5;
 	
 /*************
  * constants */
+var juliaCrSel = '#julia-cr';
+var juliaCiSel = '#julia-ci';
 var widthInputSel = '#canv-width';
 var heightInputSel = '#canv-height';
 var zoomInputSel = '#zoom';
@@ -45,6 +48,7 @@ var mouseIsDown;
 var movedAround;
 var mouseDownLoc;
 var currMouseLocation;
+var cr, ci; //for julia fractal
 
 /******************
  * work functions */
@@ -110,6 +114,8 @@ function init() {
 	///////////////////
 	//graph variables//
 	loadFractalParameters(fractalId); //sets up all the fractal specific variables
+	cr = 0; //defaults for the julia set
+	ci = 0;
 	
 	updateCanvas();
 }
@@ -144,6 +150,10 @@ function updateCanvas() {
 		burningShip();
 		break;
 		
+		case 2: //julia fractal
+		julia();
+		break;
+		
 		default: break;
 	}
 	
@@ -154,6 +164,10 @@ function reload(which, arg1) {
 	switch (which) {
 		case 0: //which fractal to draw
 		fractalId = arg1;
+			if (fractalId == 2) { //julia fractal
+				cr = parseFloat($(juliaCrSel).value) || 0; //reload real part of constant
+				ci = parseFloat($(juliaCiSel).value) || 0; //imaginary part
+			}
 		loadFractalParameters(fractalId);
 		reloadImageDataVars();
 		update = true;
@@ -219,6 +233,27 @@ function burningShip() {
 		var mathematicalX = canvasXToCartesian(0); //each row starts at the beginning of the x axis
 		for (var x = 0; x < width; x+=1) { //for every pixel in the current row
 			var color = getBurningShipColorFromCoord(mathematicalX, mathematicalY); //get its color
+			canvasPixelArray[0+currentIdx] = color[0]; //and color it in
+			canvasPixelArray[1+currentIdx] = color[1];
+			canvasPixelArray[2+currentIdx] = color[2];
+			canvasPixelArray[3+currentIdx] = 255; //full alpha
+			
+			currentIdx += 4; //you set 4 values in the array, so move over 4
+			mathematicalX += xScale; //move along the x axis
+		}
+		mathematicalY += -yScale; //move down the y axis
+	}
+	ctx.putImageData(canvasImageDataObj, 0, 0); //all the colors have been computed, so draw 'em
+}
+
+function julia() {
+	var currentIdx = 0; //current index in the pixel array (linear representation of 2d image)
+	var mathematicalY = canvasYToCartesian(0); //the mathematical y coordinate of the top left corner
+	var mathStartingX = canvasXToCartesian(0);
+	for (var y = 0; y < height; y+=1) { //for every row
+		var mathematicalX = mathStartingX; //each row starts at the beginning of the x axis
+		for (var x = 0; x < width; x+=1) { //for every pixel in the current row
+			var color = getJuliaColorFromCoord(cr, ci, mathematicalX, mathematicalY); //get its color
 			canvasPixelArray[0+currentIdx] = color[0]; //and color it in
 			canvasPixelArray[1+currentIdx] = color[1];
 			canvasPixelArray[2+currentIdx] = color[2];
@@ -305,6 +340,46 @@ function getBurningShipColorFromCoord(x, y) {
 	if (iteration != maxIterations) { //if it didn't survive all the iterations, it has a color
 		var gray = Math.floor(255 * (1 - (iteration/maxIterations)));
 		color[0] = color[1] = color[2] = gray;
+	}
+	
+	return color;
+}
+
+function getJuliaColorFromCoord(realConst, imConst, initX, initY) { //similarities between this and mandelbrot set aren't abstracted out for efficiency purposes
+	var color = [0, 0, 0];
+	
+	///////////////////////////////////////////
+	//continue with the escape time algorithm//
+	var x_ = initX, y_ = initY;
+	var iteration = 0;
+	var xsq = initX*initX, ysq = initY*initY;
+	var val = xsq + ysq;
+
+	while (val <= 4 && iteration < maxIterations) {
+		y_ = x_*y_;
+		y_ += y_; //times 2
+		y_ += imConst;
+		x_ = (xsq - ysq) + realConst;					
+		
+		xsq = x_*x_;
+		ysq = y_*y_;
+		val = xsq + ysq;
+		iteration += 1;
+	}
+
+	if (iteration != maxIterations) { //if it didn't survive all the iterations, it has a color
+		var mu = iteration - (Math.log(Math.log(val))); //fractional stopping iteration
+			mu = palette.length * (mu/maxIterations); //spread the colors out
+				if (mu > palette.length) mu = palette.length; //not too big
+				else if (mu < 0) mu = 0; //not too small
+			mu *= colorMult; //allow the color scheme to repeat
+		var intPartMu = Math.floor(mu); //integer part of mu
+		var bucket = intPartMu%palette.length; //base the color on the integer part of mu
+		var nextBucket = (bucket+1)%palette.length; //the color right after that
+		var percentToNextBucket = mu - intPartMu; //the fractional part of mu
+
+		color = getGradient(palette[bucket], palette[nextBucket], 
+							1-percentToNextBucket); //invert it because small fractions means more of the first color
 	}
 	
 	return color;

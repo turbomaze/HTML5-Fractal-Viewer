@@ -9,8 +9,11 @@
 		<canvas id="canvas" width="700" height="500">HTML canvas not supported on this browser.</canvas>
 
 		<div>
-			<input type="button" onclick="reload(0, 0)" value="Mandelbrot Set">
-			<input type="button" onclick="reload(0, 1)" value="Burning Ship">
+			<input type="button" onclick="reload(0, 0)" value="Mandelbrot Set"> | 
+			<input type="button" onclick="reload(0, 1)" value="Burning Ship"> | 
+			<input type="text" id="julia-cr" style="width: 50px" placeholder="Re(C)">
+			<input type="text" id="julia-ci" style="width: 50px" placeholder="Im(C)">
+			<input type="button" onclick="reload(0, 2)" value="Julia (z^2 + c)">
 			<br>
 			
 			Window size:
