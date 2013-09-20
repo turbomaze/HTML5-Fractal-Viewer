@@ -12,7 +12,7 @@
 var fractalId = 0;
 var fractalParameters = [
 						 [-2.5, 1, -1.25, 1.25], //mandelbrot set
-						 [-1.25, 2.25, -0.75, 1.75]  //burning ship
+						 [-1.25, 2.25, -0.75, 1.75], //burning ship
 						 ];
 var maxIterations = 250;
 var palette = [[2,7,49], [56,98,198], [110,117,135], [128,102,65], [174, 149, 109]]; //colors to use
@@ -92,8 +92,7 @@ function init() {
 	ctx = canvas.getContext('2d');
 	width = canvas.width;
 	height = canvas.height;
-	canvasImageDataObj = ctx.createImageData(width, height); //create an image data holder
-	canvasPixelArray = canvasImageDataObj.data; //enables you to set individual pixels
+	reloadImageDataVars();
 	clearCanvas();
 	
 	//////////
@@ -156,6 +155,7 @@ function reload(which, arg1) {
 		case 0: //which fractal to draw
 		fractalId = arg1;
 		loadFractalParameters(fractalId);
+		reloadImageDataVars();
 		update = true;
 		updateCanvas();
 		break;
@@ -163,8 +163,7 @@ function reload(which, arg1) {
 		case 1: //canvas width and height
 		width = parseInt($(widthInputSel).value); //get width
 		height = parseInt($(heightInputSel).value); //get height
-		canvasImageDataObj = ctx.createImageData(width, height); //create a new image data holder
-		canvasPixelArray = canvasImageDataObj.data; //get the corresponding empty pixel array
+		reloadImageDataVars();
 		canvas.width = width; //change the width
 		canvas.height = height; //and height of the canvas
 		N_ORIGIN = new Vector2((-x_min/(x_max - x_min))*width, (y_max/(y_max - y_min))*height); //recalculate the canvas's origin
@@ -311,6 +310,11 @@ function getBurningShipColorFromCoord(x, y) {
 	return color;
 }
 
+function reloadImageDataVars() {
+	canvasImageDataObj = ctx.createImageData(width, height); //create an image data holder
+	canvasPixelArray = canvasImageDataObj.data; //enables you to set individual pixels
+}
+
 function loadFractalParameters(fractal) {
 	x_min = fractalParameters[fractal][0];
 	x_max = fractalParameters[fractal][1];
@@ -340,12 +344,13 @@ function vCanvasToCartesian(c1) { return c1.sub(N_ORIGIN).cMult(new Vector2(xSca
 function canvasXToCartesian(x) { return xScale*(x - N_ORIGIN.x); }
 function canvasYToCartesian(y) { return -yScale*(y - N_ORIGIN.y); }
 function vCartesianToCanvas(c1) { return c1.cDiv(new Vector2(xScale, -yScale)).add(N_ORIGIN); }
-function cartesianXToCanvas(x) { return N_ORIGIN.x+(x/xScale); }
-function cartesianYToCanvas(y) { return N_ORIGIN.y+(y/-yScale); }
+function cartesianXToCanvas(x) { return Math.floor(N_ORIGIN.x+(x/xScale)); }
+function cartesianYToCanvas(y) { return Math.floor(N_ORIGIN.y+(y/-yScale)); }
 
 function clearCanvas() {
 	ctx.fillStyle = '#FFFFFF';
 	ctx.fillRect(0, 0, width, height);
+	reloadImageDataVars(); //so when it is loaded back up onto the canvas old data isn't rewritten
 }
 
 function getGradient(c1, c2, percent) { //returns an RBG color that's a percentage of the first mixed with the second
