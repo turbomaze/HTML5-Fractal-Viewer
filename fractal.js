@@ -402,6 +402,38 @@ function loadFractalParameters(fractal) {
 
 /********************
  * helper functions */
+function promptBlobSaveCanvas() {
+	var imageInBase64 = canvas.toDataURL('image/png').substring("data:image/png;base64,".length);
+	var blob = b64toBlob(imageInBase64, 'image/png');
+	var blobUrl = URL.createObjectURL(blob);
+	window.location = blobUrl;
+}
+
+/* stolen from http://stackoverflow.com/questions/16245767/creating-a-blob-from-a-base64-string-in-javascript */
+function b64toBlob(b64Data, contentType, sliceSize) {
+    contentType = contentType || '';
+    sliceSize = sliceSize || 512;
+
+    var byteCharacters = atob(b64Data);
+    var byteArrays = [];
+
+    for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+        var slice = byteCharacters.slice(offset, offset + sliceSize);
+
+        var byteNumbers = new Array(slice.length);
+        for (var i = 0; i < slice.length; i++) {
+            byteNumbers[i] = slice.charCodeAt(i);
+        }
+
+        var byteArray = new Uint8Array(byteNumbers);
+
+        byteArrays.push(byteArray);
+    }
+
+    var blob = new Blob(byteArrays, {type: contentType});
+    return blob;
+}
+
 function promptSaveCanvas() {
 	var downloadUrl = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream');
 	if (downloadUrl.length < 1024*1024 || confirm('This is a relatively large image, so your browser may crash. Continue?')) {
