@@ -53,6 +53,9 @@ var cr, ci; //for julia fractal
 /******************
  * work functions */
 function init() {
+	currMouseLocation = new Vector2(0, 0);
+	mouseDownLoc = new Vector2(0, 0);
+
 	////////////////
 	//canvas stuff//
 	canvas = document.getElementById('canvas');
@@ -92,6 +95,11 @@ function init() {
 			y_max = (0-N_ORIGIN.y)*yScale;
 			update = true;
 			updateCanvas();
+			
+			e.stopPropagation();
+			e.preventDefault();
+			e.returnValue = false;
+			return false;
 		}, false);
 	ctx = canvas.getContext('2d');
 	width = canvas.width;
@@ -101,11 +109,11 @@ function init() {
 	
 	//////////
 	//inputs//
-	$(widthInputSel).value = width;
-	$(heightInputSel).value = height;
-	$(zoomInputSel).value = zoomSpeed;
-	$(numIterInputSel).value = maxIterations;
-	$(colorMultInputSel).value = colorMult;
+	$s(widthInputSel).value = width;
+	$s(heightInputSel).value = height;
+	$s(zoomInputSel).value = zoomSpeed;
+	$s(numIterInputSel).value = maxIterations;
+	$s(colorMultInputSel).value = colorMult;
 
 	//////////////////
 	//misc variables//
@@ -165,8 +173,8 @@ function reload(which, arg1) {
 		case 0: //which fractal to draw
 		fractalId = arg1;
 			if (fractalId == 2) { //julia fractal
-				cr = parseFloat($(juliaCrSel).value) || 0; //reload real part of constant
-				ci = parseFloat($(juliaCiSel).value) || 0; //imaginary part
+				cr = parseFloat($s(juliaCrSel).value) || 0; //reload real part of constant
+				ci = parseFloat($s(juliaCiSel).value) || 0; //imaginary part
 			}
 		loadFractalParameters(fractalId);
 		reloadImageDataVars();
@@ -175,8 +183,8 @@ function reload(which, arg1) {
 		break;
 		
 		case 1: //canvas width and height
-		width = parseInt($(widthInputSel).value); //get width
-		height = parseInt($(heightInputSel).value); //get height
+		width = parseInt($s(widthInputSel).value); //get width
+		height = parseInt($s(heightInputSel).value); //get height
 		reloadImageDataVars();
 		canvas.width = width; //change the width
 		canvas.height = height; //and height of the canvas
@@ -187,17 +195,17 @@ function reload(which, arg1) {
 		updateCanvas();
 		
 		case 2: //how much to zoom by each time
-		zoomSpeed = parseFloat($(zoomInputSel).value);
+		zoomSpeed = parseFloat($s(zoomInputSel).value);
 		break;
 	
 		case 3: //maximum number of iterations to test
-		maxIterations = parseInt($(numIterInputSel).value);
+		maxIterations = parseInt($s(numIterInputSel).value);
 		update = true;
 		updateCanvas();
 		break;
 		
 		case 4: //how many times to repeat the color scheme
-		colorMult = parseFloat($(colorMultInputSel).value);
+		colorMult = parseFloat($s(colorMultInputSel).value);
 		update = true;
 		updateCanvas();
 		break;
@@ -481,7 +489,7 @@ function getMousePos(e) {
 	return new Vector2(e.clientX-rect.left, e.clientY-rect.top);
 }
 
-function $(id) { //for convenience
+function $s(id) { //for convenience
 	if (id.charAt(0) != '#') return false; 
 	return document.getElementById(id.substring(1));
 }
